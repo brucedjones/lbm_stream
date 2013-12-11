@@ -1,4 +1,4 @@
-lbm_stream
+LBM_Stream
 ==========
 
 This a sample implementation of Origin Streaming for the Lattice Boltzmann Method.

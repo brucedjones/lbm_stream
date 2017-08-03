@@ -37,12 +37,12 @@
 #define Q 9
 
 // Lattice Constants
-const int Lx = 20000;
-const int Ly = 1000;
+const int Lx = 200;
+const int Ly = 100;
 const int maxT = 100;
 const double tau = 1.0;
 const double force[DIM] = {0.00001, 0.0};
-const int output_frequency = 100;
+const int output_frequency = 10;
 const double omega[Q] = { 4.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 36.0, 1.0 / 36.0, 1.0 / 36.0, 1.0 / 36.0 };
 const int e[DIM][Q] = { { 0, 1, 0, -1, 0, 1, -1, -1, 1 },
 						{ 0, 0, 1, 0, -1, 1, 1, -1, -1 } };
@@ -65,11 +65,9 @@ void writeOutput(int t){
 
 int main(int argc, char* argv[])
 {
-	printf("%d %d %d\n", Q, Lx, Ly);
 	// Allocate Memory
 	f = new double[Q*Lx*Ly];
 	#ifdef TWO_LATTICE
-		printf("worked\n");
 		f_prev = new double[Q*Lx*Ly];
 	#endif
 	#ifdef OUTPUT
@@ -92,6 +90,12 @@ int main(int argc, char* argv[])
 	}
 
 	// Start the timer
+	#ifdef TWO_LATTICE
+		printf("Starting two lattice test\n");
+	#else
+		printf("Starting lagrangian streaming test\n");
+	#endif
+	
 	clock_t start_time = clock();
 
 	// Main Time Loop
@@ -251,6 +255,12 @@ int main(int argc, char* argv[])
 			}
 		}
 
+		#ifdef TWO_LATTICE
+		double* tmp = f;
+		f = f_prev;
+		f_prev = tmp;
+		#endif
+
 		#ifdef OUTPUT
 			if(t%output_frequency ==0) {
 				writeOutput(t);
@@ -262,6 +272,7 @@ int main(int argc, char* argv[])
 	clock_t end_time = clock();
     double total_time = (double)(end_time - start_time);
     printf("Total Time: %.15f\n",total_time/CLOCKS_PER_SEC);
+    printf("Press any key to exit...");
 	getchar();
 	
 	return 0;

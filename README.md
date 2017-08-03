@@ -22,4 +22,13 @@ Options:
 
 Note: Do not use ORIGIN_STREAMING and TWO_LATTICE options at the same time
 
+## Opening output in Matlab
+
+```matlab
+fid = fopen('<path_to_file>');
+ux = fread(fid,[Lx,Ly],'double');
+fclose(fid);
+imagesc(ux')
+```
+
 

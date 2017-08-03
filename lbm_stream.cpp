@@ -22,7 +22,6 @@
 
 #include <fstream>
 #include <string>
-#include <stdlib.h>
 #include "time.h"
 
 #include "lbm_stream.h"
@@ -79,8 +78,8 @@ int main(int argc, char* argv[])
 	for(int j = 0; j<Ly; j++) {
 		for(int i = 0; i<Lx; i++) {
 			for(int q = 0; q<Q; q++) {
-				//ix = q+(i*Q)+(j*Q*Lx);
-				ix = (i) + (j*Lx) + (q*Q*Lx);
+				ix = q+(i*Q)+(j*Q*Lx);
+				//ix = (i) + (j*Lx) + (q*Q*Lx);
 				f[ix] = omega[q];
 				#ifdef TWO_LATTICE
 					f_prev[ix] = omega[q];
@@ -95,7 +94,7 @@ int main(int argc, char* argv[])
 	#else
 		printf("Starting lagrangian streaming test\n");
 	#endif
-	
+
 	clock_t start_time = clock();
 
 	// Main Time Loop
@@ -113,21 +112,21 @@ int main(int argc, char* argv[])
 				int idx;
 				for(int q = 0; q<Q; q++) {
 					// Compute PDF origin ijk
-					int i_o = (abs(i - (t*e[0][q])) % Lx);
+					int i_o = (i - (t*e[0][q])+Lx) % Lx;
 
 					// Compute PDF origin ijk
-					int j_o = (abs(j - (t*e[1][q])) % Ly);
+					int j_o = (j - (t*e[1][q])+Ly) % Ly;
 
-					//idx = q + (i_o*Q) + (j_o*Q*Lx);
-					idx = (i_o)+(j_o*Lx) + (q*Q*Lx);
+					idx = q + (i_o*Q) + (j_o*Q*Lx);
+					//idx = (i_o)+(j_o*Lx) + (q*Q*Lx);
 					f_now[q] = f[idx];
 				}
 				#endif
 				
 				#ifdef TWO_LATTICE
 					for(int q = 0; q<Q; q++) {
-						//int idx = q+(i*Q)+(j*Q*Lx);
-						int idx = (i)+(j*Lx) + (q*Q*Lx);
+						int idx = q+(i*Q)+(j*Q*Lx);
+						//int idx = (i)+(j*Lx) + (q*Q*Lx);
 						f_now[q] = f_prev[idx];
  					}
 				#endif
@@ -164,25 +163,21 @@ int main(int argc, char* argv[])
 					{	
 						#ifdef ORIGIN_STREAMING
 						// Compute PDF origin ijk
-						int i_o = (abs(i - (t*e[0][q])) % Lx);
+						int i_o = (i - (t*e[0][q])+Lx) % Lx;
 
 						// Compute PDF origin ijk
-						int j_o = (abs(j - (t*e[1][q])) % Ly);
+						int j_o = (j - (t*e[1][q])+Ly) % Ly;
 
-						//int idxo = opp[q] + (i_o*Q) + (j_o*Q*Lx);
-						int idxo = (i_o)+(j_o*Lx) + (opp[q]*Q*Lx);
+						int idxo = q + (i_o*Q) + (j_o*Q*Lx);
+						//int idxo = (i_o)+(j_o*Lx) + (q*Q*Lx);
 							f[idxo] = f_now[opp[q]];
 						#endif
 
 						#ifdef TWO_LATTICE
-							int i_target = (i+e[0][q]);
-							int j_target = (j+e[1][q]);
-							if(i_target<0) i_target = Lx-1;
-							if(i_target>(Lx-1)) i_target = 0;
-							if(j_target<0) j_target = Ly-1;
-							if(j_target>(Ly-1)) j_target = 0;
-							//int idx = q+(i_target*Q)+(j_target*Q*Lx);
-							int idx = (i_target)+(j_target*Lx) + (q*Q*Lx);
+							int i_target = (i+e[0][q] + Lx) % Lx;
+							int j_target = (j+e[1][q] + Ly) % Ly;\
+							int idx = q+(i_target*Q)+(j_target*Q*Lx);
+							//int idx = (i_target)+(j_target*Lx) + (q*Q*Lx);
 							f[idx] = f_now[opp[q]];
 						#endif
 					}
@@ -229,25 +224,21 @@ int main(int argc, char* argv[])
 						// Execute collision
 						#ifdef ORIGIN_STREAMING
 							// Compute PDF origin ijk
-							int i_o = (abs(i - (t*e[0][q])) % Lx);
+							int i_o = (i - (t*e[0][q])+Lx) % Lx;
 
 							// Compute PDF origin ijk
-							int j_o = (abs(j - (t*e[1][q])) % Ly);
+							int j_o = (j - (t*e[1][q])+Ly) % Ly;
 
-							//idx = q + (i_o*Q) + (j_o*Q*Lx);
-							idx = (i_o)+(j_o*Lx) + (q*Q*Lx);
+							idx = q + (i_o*Q) + (j_o*Q*Lx);
+							//idx = (i_o)+(j_o*Lx) + (q*Q*Lx);
 							f[idx] = f_now[q] - (1.0/(tau)) * (f_now[q]-f_eq[q]) + force_term[q];
 						#endif
 
 						#ifdef TWO_LATTICE
-							int i_target = (i+e[0][q]);
-							int j_target = (j+e[1][q]);
-							if(i_target<0) i_target = Lx-1;
-							if(i_target>(Lx-1)) i_target = 0;
-							if(j_target<0) j_target = Ly-1;
-							if(j_target>(Ly-1)) j_target = 0;
-							//int idx = q+(i_target*Q)+(j_target*Q*Lx);
-							int idx = (i_target)+(j_target*Lx) + (q*Q*Lx);
+							int i_target = (i+e[0][q] + Lx) % Lx;
+							int j_target = (j+e[1][q] + Ly) % Ly;\
+							int idx = q+(i_target*Q)+(j_target*Q*Lx);
+							//int idx = (i_target)+(j_target*Lx) + (q*Q*Lx);
 							f[idx] = f_now[q] - (1.0/(tau)) * (f_now[q]-f_eq[q]) + force_term[q];
 						#endif
 					}
